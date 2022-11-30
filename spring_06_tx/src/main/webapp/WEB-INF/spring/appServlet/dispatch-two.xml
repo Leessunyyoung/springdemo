@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+		
+		<!-- 선언적 트랜잭션 : <tx:advice>태그를 이용한 트랜잭션 -->
+
+	<!-- [2] SqlSessionFactoryBean 빈선언 -->
+	<bean id="sqlSessionFactory"
+			class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="mapperLocations">
+			<list>
+				<value>classpath:config/memMapper.xml</value>
+			</list>
+		</property>
+	</bean>
+	
+	<!-- [3] SqlSessionTemplate 빈 선언 -->
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg ref="sqlSessionFactory" />
+	</bean>
+	
+	<!-- Spring JDBC나 Mybatis를 이용해서 DB연동을 처리하는 경우
+		DataSourceTransactionManager이 트랜잭션 관리자로 사용된다. -->
+	<!-- [4] TransactionManager 빈 선언 -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"/>	
+	</bean>
+	
+	<!-- [5]선언적 트랜잭션 : <tx:advice>태그를 이용한 트랜잭션처리 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="*Process" rollback-for="org.spframework.dao.DuplicateKeyException"/>
+		</tx:attributes>
+	</tx:advice>
+	
+	<!-- [6] MemDaoImp 빈 선언 -->
+	
+	<bean id="dao" class="model.MemDaoImp">
+		<property name="sqlSession" ref="sqlSession"/>
+	</bean>
+	
+	<!-- [7] ServiceImp 빈 선언-->
+	<bean id="service" class="part02.ServiceImp">
+		<property name="memDAO" ref="dao"/>
+		
+	</bean>
+	
+	<!-- [8] MemController 빈 선언 -->
+	
+	<bean class="part02.MemController">
+		<property name="svc" ref="service"/>
+	</bean>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+</beans>
